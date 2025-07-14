@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxo de Caixa - Finanças Pessoais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .card h3 {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .balance-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .income { color: #27ae60; }
+        .expense { color: #e74c3c; }
+        .balance { color: #3498db; }
+
+        .form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .transactions-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .transaction-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-description {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .transaction-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-right: 1rem;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .transaction-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .transaction-amount {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Fluxo de Caixa</h1>
+            <p class="subtitle">Gerencie suas finanças pessoais de forma simples e eficiente</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>💚 Receitas</h3>
+                <div class="balance-value income" id="income">R$ 0,00</div>
+            </div>
+            <div class="card">
+                <h3>💸 Despesas</h3>
+                <div class="balance-value expense" id="expense">R$ 0,00</div>
+            </div>
+            <div class="card">
+                <h3>💰 Saldo</h3>
+                <div class="balance-value balance" id="balance">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>➕ Adicionar Transação</h2>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="description">Descrição</label>
+                    <input type="text" id="description" name="description" required placeholder="Ex: Salário, Supermercado, Conta de luz...">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount">Valor (R$)</label>
+                        <input type="number" id="amount" name="amount" step="0.01" required placeholder="0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Tipo</label>
+                        <select id="type" name="type" required>
+                            <option value="">Selecione...</option>
+                            <option value="income">💚 Receita</option>
+                            <option value="expense">💸 Despesa</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Data</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                
+                <button type="submit" class="btn">Adicionar Transação</button>
+            </form>
+        </div>
+
+        <div class="transactions-section">
+            <h2>📋 Histórico de Transações</h2>
+            <div id="transactionsList">
+                <div class="loading">Carregando transações...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurar data atual como padrão
+        document.getElementById('date').valueAsDate = new Date();
+
+        // Função para formatar valores em reais
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        // Função para carregar o saldo
+        async function loadBalance() {
+            try {
+                const response = await fetch('/api/balance');
+                const data = await response.json();
+                
+                document.getElementById('income').textContent = formatCurrency(data.income);
+                document.getElementById('expense').textContent = formatCurrency(data.expense);
+                document.getElementById('balance').textContent = formatCurrency(data.balance);
+            } catch (error) {
+                console.error('Erro ao carregar saldo:', error);
+            }
+        }
+
+        // Função para carregar transações
+        async function loadTransactions() {
+            try {
+                const response = await fetch('/api/transactions');
+                const transactions = await response.json();
+                
+                const container = document.getElementById('transactionsList');
+                
+                if (transactions.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Nenhuma transação encontrada. Adicione sua primeira transação!</div>';
+                    return;
+                }
+                
+                container.innerHTML = transactions.map(transaction => `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-description">${transaction.description}</div>
+                            <div class="transaction-date">${new Date(transaction.date).toLocaleDateString('pt-BR')}</div>
+                        </div>
+                        <div class="transaction-amount ${transaction.type}">
+                            ${transaction.type === 'income' ? '+' : '-'} ${formatCurrency(Math.abs(transaction.amount))}
+                        </div>
+                        <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">🗑️</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar transações:', error);
+                document.getElementById('transactionsList').innerHTML = '<div class="empty-state">Erro ao carregar transações.</div>';
+            }
+        }
+
+        // Função para adicionar transação
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                description: formData.get('description'),
+                amount: parseFloat(formData.get('amount')),
+                type: formData.get('type'),
+                date: formData.get('date')
+            };
+            
+            try {
+                const response = await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    e.target.reset();
+                    document.getElementById('date').valueAsDate = new Date();
+                    loadBalance();
+                    loadTransactions();
+                } else {
+                    const error = await response.json();
+                    alert('Erro: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar transação:', error);
+                alert('Erro ao adicionar transação');
+            }
+        });
+
+        // Função para deletar transação
+        async function deleteTransaction(id) {
+            if (!confirm('Tem certeza que deseja excluir esta transação?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/transactions/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadBalance();
+                    loadTransactions();
+                } else {
+                    alert('Erro ao excluir transação');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir transação:', error);
+                alert('Erro ao excluir transação');
+            }
+        }
+
+        // Carregar dados iniciais
+        loadBalance();
+        loadTransactions();
+    </script>
+</body>
+</html>
+
